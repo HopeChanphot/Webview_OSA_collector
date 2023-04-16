@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>OSA View App</title>
+
+    <!-- include Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-app.js"></script>
+
+    <!-- include only the Firebase features as you need -->
+    <script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-database.js"></script>
+
+    <script>
+      // Replace with your app config object
+      const firebaseConfig = {
+        apiKey: "AIzaSyDiydWMQ8O3LcUABjCCiz4BYJr3K1vezrg",
+        authDomain: "osa-collector.firebaseapp.com",
+        databaseURL: "https://osa-collector-default-rtdb.firebaseio.com",
+        projectId: "osa-collector",
+        storageBucket: "osa-collector.appspot.com",
+        messagingSenderId: "4227581868",
+        appId: "1:4227581868:web:60551fee698596d1c29c09"
+      };
+
+      // Initialize firebase
+      firebase.initializeApp(firebaseConfig);
+
+      // Make auth and database references
+      const auth = firebase.auth();
+      const db = firebase.database();
+
+    </script>
+
+    <!-- include highchartsjs to build the charts-->
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+
+    <!-- include to use jquery-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <!--include icons from fontawesome-->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+    <!-- include Gauges Javascript library-->
+    <script src="https://cdn.rawgit.com/Mikhus/canvas-gauges/gh-pages/download/2.1.7/all/gauge.min.js"></script>
+    <!--reference for favicon-->
+    <link rel="icon" type="image/png" href="favicon.png">
+    <!--reference a stylesheet-->
+    <link rel="stylesheet" type="text/css" href="style.css">
+
+  </head>
+
+  <body>
+
+    <!--TOP BAR-->
+    <div class="topnav">
+      <h1>OSA View App <i class="fas fa-clipboard-list"></i></h1>
+    </div>
+
+    <!--AUTHENTICATION BAR (USER DETAILS/LOGOUT BUTTON)-->
+    <div id="authentication-bar" style="display: none;">
+      <p><span id="authentication-status">User logged in</span>
+        <span id="user-details">USEREMAIL</span>
+        <a href="/" id="logout-link">(logout)</a>
+        
+      <form>
+
+        <label for="input-patient"><b>ID</b></label>
+        <input type="text" placeholder="Enter patient id" id="input-p" required>
+        <button  type="button" onclick="changeText0()" >submit</button>
+        <button  type="button" onclick="changeText1()" >FindSleepData</button>
+        <button id="export-btn">Export to CSV</button>
+
+        <p id="user-p"></p>
+        <table id="resultTable"></table>
+      </form>
+      <form>
+<!--table id="data1"></table-->
+        <div id="tableContainer">
+          <div id="data1"></div>
+      </div>
+      
+      </form>
+        <!--form>
+          <label for="input-text">Enter Text:</label>
+          <input type="text" id="input-text" name="input-text">
+          <button type="button" onclick="updateText()">Submit</button>
+        </form>
+        <p id="output-text"></p>
+
+        <div id="data-container1" style= "display:none;"></div>
+        <form-->
+       
+
+      </p>
+    </div>
+
+    <!--LOGIN FORM-->
+    <form id="login-form" style="display: none;">
+      <div class="form-elements-container">
+        <label for="input-email"><b>Email</b></label>
+        <input type="text" placeholder="Enter Username" id="input-email" required>
+
+        <label for="input-password"><b>Password</b></label>
+        <input type="password" placeholder="Enter Password" id="input-password" required>
+
+        <button type="submit" id="login-button">Login</button>
+        <p id="error-message" style="color:red;"></p>
+      </div>
+    </form>
+
+
+   
+
+    <!--CONTENT (SENSOR READINGS)-->
+    <div class="content-sign-in" id="content-sign-in" style="display: none;">
+
+      <p>
+       
+        Charts: <input type="checkbox" id="charts-checkbox" name="charts-checkbox" unchecked>
+      </p>
+     
+
+      <!--CHARTS-->
+      <div id="charts-div" style="display:none">
+        <!--SET NUMBER OF READINGS INPUT FIELD-->
+        <div>
+
+          <form>
+        
+            <form>
+              <label for="chartst">Patient ID:</label>
+              <p type="text" id="user-q"></p>
+            
+              <input type="text" id="charts-rangeq" placeholder="Enter patient id" name="UserID" value="1283277"  style="width: 200px;">
+               <input type="button" value="Choose ID" onclick="updateText()">
+            
+              <p type="text" id="user-n"></p>
+            
+              <input type="text" id="num-data-points" placeholder="Enter number of data" name="number of reading" value="10"  style="width: 200px;">
+               <input type="button" value="Update Chart" onclick="createChartqq()">
+               <input type="button" value="All information" onclick="createChartq()">
+
+
+
+
+            </form>
+            
+            
+            
+            <div class="cards">
+              <div class="card">
+                <p><i class="fas fa-tint" style="color:#00add6;"></i> Blood Oxygen Saturation and Decibel CHART</p>
+                <div id="containerq"></div>
+              </div>
+            </div>
+
+
+            <form>
+              
+          
+               <input type="button" value="summarize data" onclick="findall()" >
+               <div id="statsContainer">
+                <div class="row">
+                    <div class="data-box" id="avgSpo2"></div>
+                    <div class="data-box" id="lowestSpo2"></div>
+                    <div class="data-box" id="highestSpo2"></div>
+                </div>
+                <div class="row">
+                    <div class="data-box" id="avgDb"></div>
+                    <div class="data-box" id="lowestDb"></div>
+                    <div class="data-box" id="highestDb"></div>
+                </div>
+                <table id="dataf"></table>
+            </div>
+
+
+            </form>
+
+
+          </form>
+
+
+        </div>
+        <form>
+        </form>
+     
+    <!--BUTTONS TO HANDLE DATA-->
+    <!--p>
+      <!=--View data button-->
+      <!--button id="view-data-button">View all data</button>
+      <--Hide data button--->
+      <!--button id="hide-data-button" style= "display:none;">Hide data</button>
+    
+    <--/p-->
+    
+
+    <!--TABLE WITH ALL DATA-->
+    <div class ="cards">
+      <div class="card" id="table-container" style= "display:none;">
+        <table id="readings-table">
+            <tr id="theader">
+              <th>Timestamp</th>
+              <th>Decibel (db)</th>
+              <th>Blood Oxygen Saturation (%)</th>
+              <th>Time </th>
+            </tr>
+            <tbody id="tbody">
+            </tbody>
+        </table>
+        <p><button id="load-data" style= "display:none;">More results...</button></p>
+      </div>
+    </div>
+
+
+  </div>
+
+
+
+
+    <!--INCLUDE JS FILES-->
+    <script src="scripts/auth.js"></script>
+    <script src="scripts/charts-definition.js"></script>
+    <script src="scripts/gauges-definition.js"></script>
+    <script src="scripts/index.js"></script>
+    <script src="scripts/pp.js"></script>
+    <script src="scripts/db-chart.js"></script>
+  <script src="scripts/spo2-chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+    <script>
+
+function findall() {
+  
+  
+  
+  var statsContainer = document.getElementById('statsContainer');
+    if (statsContainer.style.visibility === 'hidden') {
+        statsContainer.style.visibility = 'visible';
+    } else {
+        statsContainer.style.visibility = 'hidden';
+    }
+
+    var userId = document.getElementById("charts-rangeq").value;
+    var bloodOxygenDataUseRef = firebase.database().ref("SleepData/" + "BloodOxygenDataUse/" + userId);
+    bloodOxygenDataUseRef.once("value", function (snapshot) {
+        var data = snapshot.val();
+        var html = "<tr><th>Timestamp</th><th>db</th><th>spo2</th><th>time</th></tr>";
+
+        var sumSpo2 = 0;
+        var sumDb = 0;
+        var count = 0;
+        var minSpo2 = Infinity, maxSpo2 = -Infinity;
+        var minDb = Infinity, maxDb = -Infinity;
+        var minSpo2Time, maxSpo2Time, minDbTime, maxDbTime;
+
+        for (var timestamp in data) {
+          //  var db = data[timestamp].db;
+          //  var spo2 = data[timestamp].spo2;
+           /// var time = data[timestamp].time;
+
+            var db = parseFloat(data[timestamp].db.split(' ')[0]);
+      var spo2 = parseInt(data[timestamp].spo2.split(':')[1]);
+      var timeString = data[timestamp].time;
+      // Convert the time string to a JavaScript Date object
+      //var time = new Date(timeString.replace(/_/g, ' '));
+      // Convert the time to epoch format
+    //  var epochTime = time.getTime();
+    var time = new Date(timeString.replace(/_/g, ' ')).toLocaleString(undefined, {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+});
+
+     
+
+            sumSpo2 += spo2;
+            sumDb += db;
+            count++;
+
+            if (spo2 < minSpo2) {
+                minSpo2 = spo2;
+                minSpo2Time = time;
+            }
+            if (spo2 > maxSpo2) {
+                maxSpo2 = spo2;
+                maxSpo2Time = time;
+            }
+            if (db < minDb) {
+                minDb = db;
+                minDbTime = time;
+            }
+            if (db > maxDb) {
+                maxDb = db;
+                maxDbTime = time;
+            }
+
+//html += "<tr><td>" + timestamp + "</td><td>" + db + "</td><td>" + spo2 + "</td><td>" + time + "</td></tr>";
+        }
+
+        var avgSpo2 = sumSpo2 / count;
+        var avgDb = sumDb / count;
+
+        document.getElementById("statsContainer").innerHTML = `
+        <div class="row">
+            <div class="data-box" id="avgSpo2">Average SpO2: ${avgSpo2.toFixed(2)}</div>
+            <div class="data-box" id="lowestSpo2">Lowest SpO2: ${minSpo2} at ${minSpo2Time}</div>
+            <div class="data-box" id="highestSpo2">Highest SpO2: ${maxSpo2} at ${maxSpo2Time}</div>
+        </div>
+        <div class="row">
+            <div class="data-box" id="avgDb">Average Decibel: ${avgDb.toFixed(2)}</div>
+            <div class="data-box" id="lowestDb">Lowest Decibel: ${minDb} at ${minDbTime}</div>
+            <div class="data-box" id="highestDb">Highest Decibel: ${maxDb} at ${maxDbTime}</div>
+        </div> `;
+    });
+}
+
+
+
+function changeText0() {
+    var input = document.getElementById("input-p");
+    var output = document.getElementById("user-p");
+    //var container = document.getElementById("data-container");
+
+    output.innerHTML = input.value;
+
+
+    var input = document.getElementById("input-p");
+    var inputp = document.getElementById("input-p").value;
+
+
+
+   var userId = document.getElementById("input-p").value;
+   var bloodOxygenDataUseRef = firebase.database().ref("SleepData/"+ "BloodOxygenDataUse/" + userId);
+   bloodOxygenDataUseRef.once("value", function(snapshot) {
+     var data = snapshot.val();
+     //var html = "<tr><th>Timestamp</th><th>db</th><th>spo2";
+     //var html = "<tr><th>Timestamp</th><th>db</th><th>spo2</th><th>time</th></tr>";
+     var html = "<table id='resultTable'><thead><tr><th>Timestamp</th><th>db</th><th>spo2</th></tr></thead><tbody>";
+
+     for (var timestamp in data) {
+      var db = parseFloat(data[timestamp].db.split(' ')[0]);
+      var spo2 = parseInt(data[timestamp].spo2.split(':')[1]);
+      var timeString = data[timestamp].time;
+      // Convert the time string to a JavaScript Date object
+     /// var time = new Date(timeString.replace(/_/g, ' '));
+     //html += "<tr><td>" + timestamp + "</td><td>" + db + "</td><td>" + spo2 + "</td><td>" + time + "</td></tr>";
+      // html += "<tr><td>" + timestamp + "</td><td>" + db + "</td><td>" + spo2 ;
+        html += "<tr><td>" + timestamp + "</td><td>" + db + "</td><td>" + spo2 + "</td></tr>";
+
+     }
+     html += "</tbody></table>";
+     document.getElementById("resultTable").innerHTML = html;
+
+   });
+
+  
+  }
+
+
+
+
+
+
+
+  function changeText1() {
+    var userId2 = document.getElementById("input-p").value;
+    var bloodOxygenDataUseRef2 = firebase.database().ref("SleepData/"+ "SleepDataUse/" + userId2);
+    bloodOxygenDataUseRef2.once("value", function(snapshot) {
+        var data2 = snapshot.val();
+        var html2 = "<table><tr><th>Timestamp</th><th>sleepLight</th><th>sleepRestful</th></tr>";
+        for (var timestamp in data2) {
+            var sleepLight = data2[timestamp].sleepLight;
+            var sleepRestful = data2[timestamp].sleepRestful;
+            var time = data2[timestamp].time;
+            html2 += "<tr><td>" + timestamp + "</td><td>" + sleepLight + "</td><td>" + sleepRestful + "</td></tr>";
+        }
+        html2 += "</table>";
+        document.getElementById("data1").innerHTML = html2;
+    });
+}
+
+
+
+
+
+      function updateText() {
+        var inputText = document.getElementById("charts-rangeq").value;
+        document.getElementById("user-q").textContent = inputText;
+      }
+
+      function createChartq() {
+  var input = document.getElementById("charts-rangeq");
+  var output = document.getElementById("user-q");
+  output.innerHTML = input.value;
+  var userId = document.getElementById("charts-rangeq").value;
+  var bloodOxygenDataUseRef = firebase.database().ref("SleepData/BloodOxygenDataUse/" + userId);
+  bloodOxygenDataUseRef.once("value", function(snapshot) {
+    var data = snapshot.val();
+    var chartData = [];
+
+    // Loop through each timestamp in the data
+    for (var timestamp in data) {
+      // Get the db, spo2, and time for the current timestamp
+      var db = parseFloat(data[timestamp].db.split(' ')[0]);
+      var spo2 = parseInt(data[timestamp].spo2.split(':')[1]);
+      var timeString = data[timestamp].time;
+      // Convert the time string to a JavaScript Date object
+      var time = new Date(timeString.replace(/_/g, ' '));
+      // Convert the time to epoch format
+      var epochTime = time.getTime();
+      // Add the db and spo2 values to the chart data array
+      chartData.push({x: epochTime, y: db}, {x: epochTime, y: spo2});
+    }
+    
+    // Create a new chart object using the Highcharts library
+    var chart = Highcharts.chart('containerq', {
+      chart: {
+        type: 'line'
+      },
+      title: {
+        text: 'Blood Oxygen and Decibel Data'
+      },
+      plotOptions: {
+      line: { 
+        dataLabels: { 
+          enabled: true 
+        }
+      }
+    },
+
+
+      xAxis: {
+        type: 'datetime',
+        dateTimeLabelFormats: {
+          second: '%Y-%m-%d<br>%H:%M:%S',
+          minute: '%Y-%m-%d<br>%H:%M',
+          hour: '%Y-%m-%d<br>%H:%M',
+          day: '%Y-%m-%d',
+          week: '%Y-%m-%d',
+          month: '%Y-%m',
+          year: '%Y'
+        },
+        title: {
+          text: 'Time'
+        }
+      },
+      yAxis: {
+        title: {
+          text: 'dB / SpO2'
+        }
+      },
+      series: [{
+        name: 'dB',
+        data: chartData.filter(function(d, i) { return i % 2 === 0 }),
+        color: 'red'
+      },
+      {
+        name: 'SpO2',
+        data: chartData.filter(function(d, i) { return i % 2 === 1 }),
+        color: 'blue'
+      }]
+    });
+
+  });
+}
+
+
+
+function createChartqq() {
+  var input = document.getElementById("charts-rangeq");
+  var output = document.getElementById("user-q");
+  output.innerHTML = input.value;
+  var numDataPoints = document.getElementById("num-data-points").value;
+
+  var userId = document.getElementById("charts-rangeq").value;
+  var bloodOxygenDataUseRef = firebase.database().ref("SleepData/BloodOxygenDataUse/" + userId);
+  bloodOxygenDataUseRef.once("value", function(snapshot) {
+    var data = snapshot.val();
+    var chartData = [];
+
+    // Loop through each timestamp in the data
+    for (var timestamp in data) {
+      // Get the db, spo2, and time for the current timestamp
+      var db = parseFloat(data[timestamp].db.split(' ')[0]);
+      var spo2 = parseInt(data[timestamp].spo2.split(':')[1]);
+      var timeString = data[timestamp].time;
+      // Convert the time string to a JavaScript Date object
+      var time = new Date(timeString.replace(/_/g, ' '));
+      // Convert the time to epoch format
+      var epochTime = time.getTime();
+      // Add the db and spo2 values to the chart data array
+      chartData.push({x: epochTime, y: db}, {x: epochTime, y: spo2});
+    }
+    
+    // Create a new chart object using the Highcharts library
+    var chart = Highcharts.chart('containerq', {
+      chart: {
+        type: 'line'
+      },
+      title: {
+        text: 'Blood Oxygen and Decibel Data'
+      },
+      plotOptions: {
+      line: { 
+        dataLabels: { 
+          enabled: true 
+        }
+      }
+    },
+
+
+      xAxis: {
+        type: 'datetime',
+        dateTimeLabelFormats: {
+          second: '%Y-%m-%d<br>%H:%M:%S',
+          minute: '%Y-%m-%d<br>%H:%M',
+          hour: '%Y-%m-%d<br>%H:%M',
+          day: '%Y-%m-%d',
+          week: '%Y-%m-%d',
+          month: '%Y-%m',
+          year: '%Y'
+        },
+        title: {
+          text: 'Time'
+        }
+      },
+      yAxis: {
+        title: {
+          text: 'dB / SpO2'
+        }
+      },
+      series: [{
+        name: 'dB',
+        data: chartData.filter(function(d, i) { return i % 2 === 0 }).slice(-numDataPoints),
+        color: 'red'
+      },
+      {
+        name: 'SpO2',
+        data: chartData.filter(function(d, i) { return i % 2 === 1 }).slice(-numDataPoints),
+        color: 'blue'
+      }]
+    });
+
+   
+
+
+  });
+}
+
+var exportBtn = document.getElementById('export-btn');
+    var table = document.getElementById('resultTable');
+
+    exportBtn.addEventListener('click', function() {
+      var csv = 'Timestamp,db,spo2,time\n';
+
+      // Loop through each row of the table
+      for (var i = 0; i < table.rows.length; i++) {
+        var rowData = '';
+
+        // Loop through each cell in the row
+        for (var j = 0; j < table.rows[i].cells.length; j++) {
+          rowData += table.rows[i].cells[j].innerText + ',';
+        }
+
+        // Remove trailing comma and add newline
+        rowData = rowData.slice(0, -1);
+        csv += rowData + '\n';
+      }
+
+      // Download the CSV file
+      var link = document.createElement('a');
+      link.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURI(csv));
+      link.setAttribute('download', 'table-data.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+
+
+
+
+
+
+
+
+    </script>
+
+
+
+
+
+  </body>
+
+</html>
